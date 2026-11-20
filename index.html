@@ -102,10 +102,11 @@ button.tag:hover{color:var(--fg)}
 
 <div class="login" id="loginBox" hidden>
   <h1>Pendentes DEM</h1>
-  <p style="margin:0;color:var(--muted)">Enter your work email. We'll send you a sign-in link.</p>
+  <p style="margin:0;color:var(--muted)">Sign in with your work email. The first time, choose <b>Create account</b> and pick a password.</p>
   <form id="loginForm" style="display:flex;flex-direction:column;gap:10px">
     <input id="loginEmail" type="email" required placeholder="name@example.com" autocomplete="email">
-    <button class="primary" type="submit">Send sign-in link</button>
+    <input id="loginPass" type="password" required minlength="8" placeholder="Password (at least 8 characters)" autocomplete="current-password">
+    <div style="display:flex;gap:8px"><button class="primary" type="submit" style="flex:1">Sign in</button><button class="ghost" type="button" id="signupBtn">Create account</button></div>
   </form>
   <p id="loginMsg" style="margin:0;font-size:.9rem;color:var(--muted)"></p>
 </div>
@@ -364,7 +365,7 @@ async function showApp(email){
   $("#whoAmI").innerHTML = email ? `Signed in as ${esc(email)} <button class="ghost" id="logout" style="padding:2px 8px;font-size:.78rem">Sign out</button>` : "";
   const lo=$("#logout"); if (lo) lo.onclick = async()=>{ await sb.auth.signOut(); location.reload(); };
   try { await store.load(); store.subscribe(); }
-  catch(e){ $("#list").innerHTML = `<div class="empty">Couldn't load the list. If you just signed in, ask whoever set this up to add your email to the team list.</div>`; }
+  catch(e){ $("#list").innerHTML = `<div class="empty">Couldn't load the list. Your email may not be on the team list yet. Ask whoever set this up to add it.</div>`; }
 }
 (async()=>{
   if (DEMO){ $("#demoBanner").hidden=false; showApp(null); return; }
@@ -373,10 +374,18 @@ async function showApp(email){
   if (session) return showApp(session.user.email);
   $("#loginBox").hidden=false;
   sb.auth.onAuthStateChange((_ev, s)=>{ if (s && $("#app").hidden) showApp(s.user.email); });
+  const creds = () => ({ email:$("#loginEmail").value.trim(), password:$("#loginPass").value });
+  const msg = t => $("#loginMsg").textContent = t;
   $("#loginForm").onsubmit = async e=>{
     e.preventDefault();
-    const { error } = await sb.auth.signInWithOtp({ email:$("#loginEmail").value.trim(), options:{ emailRedirectTo: location.href.split("#")[0] } });
-    $("#loginMsg").textContent = error ? "Couldn't send the link: "+error.message : "Check your inbox and click the link to sign in.";
+    const { error } = await sb.auth.signInWithPassword(creds());
+    if (error) msg(error.message.includes("Invalid") ? "Wrong email or password. First time here? Use Create account." : "Couldn't sign in: "+error.message);
+  };
+  $("#signupBtn").onclick = async ()=>{
+    if (!$("#loginForm").reportValidity()) return;
+    const { data, error } = await sb.auth.signUp(creds());
+    if (error) return msg("Couldn't create the account: "+error.message);
+    if (!data.session) msg("Account created. Check your email to confirm it, then sign in.");
   };
 })();
 </script>
