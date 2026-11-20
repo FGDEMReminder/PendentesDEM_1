@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pendentes DEM</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Layout: list column on the left, live map on the right (stacked on narrow screens). */
+:root{
+  --bg:#f3f5f8; --surface:#fff; --fg:#1b2330; --muted:#5f6b7c; --line:#dde2ea;
+  --accent:#2f5bd3; --accent-fg:#fff; --accent-soft:#e6ecfb;
+  --danger:#c23b2e; --danger-soft:#fbe9e7; --warn:#a86a00; --warn-soft:#fdf1d8; --ok:#2e7d4f; --done:#8a94a3;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#12161d; --surface:#1a2029; --fg:#e6eaf0; --muted:#97a2b3; --line:#2b3340;
+  --accent:#7d9cf0; --accent-fg:#0e1420; --accent-soft:#222c41;
+  --danger:#ef7b6f; --danger-soft:#3a2323; --warn:#e3b04f; --warn-soft:#352b17; --ok:#6cc392; --done:#6b7584; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+.app{display:grid;grid-template-columns:minmax(380px,520px) minmax(0,1fr);height:100%}
+.side{overflow:auto;padding:22px 18px 40px;display:flex;flex-direction:column;gap:16px;border-right:1px solid var(--line)}
+#map{height:100%;min-height:300px;background:var(--line)}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:1.7rem;margin:0}
+.who-am-i{font-size:.82rem;color:var(--muted);display:flex;gap:8px;align-items:center}
+.counts{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:.76rem;padding:3px 9px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.chip.over{background:var(--danger-soft);border-color:transparent;color:var(--danger)}
+.chip.today{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.banner{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:.88rem}
+form.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;grid-template-columns:1fr 1fr}
+.full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:4px;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,textarea,select{font:inherit;font-size:.93rem;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%;min-width:0;text-transform:none;letter-spacing:0}
+textarea{resize:vertical}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:8px;border:1px solid transparent;padding:7px 12px}
+.primary{background:var(--accent);color:var(--accent-fg)}
+.ghost{background:transparent;color:var(--muted);border-color:var(--line)}
+.ghost:hover{color:var(--fg)}
+.danger{background:var(--danger);color:#fff}
+.place{display:flex;gap:6px}
+.place input{flex:1}
+.placeinfo{font-size:.8rem;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.placeinfo button{padding:2px 8px;font-size:.78rem;font-weight:500}
+.results{display:flex;flex-direction:column;gap:4px}
+.results button{text-align:left;font-weight:400;font-size:.85rem;background:var(--bg);border-color:var(--line);color:var(--fg)}
+.picking #map{cursor:crosshair}
+.pickhint{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:.88rem}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.seg button{padding:4px 10px;font-weight:500;color:var(--muted);background:transparent;border-radius:6px}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.toolbar select{width:auto}
+.toolbar input{flex:1;min-width:120px}
+.group{display:flex;flex-direction:column;gap:6px}
+.group h2{font-family:var(--display);font-weight:600;font-size:.98rem;margin:2px 0}
+.group h2 .n{font-family:var(--mono);font-size:.74rem;color:var(--muted);font-weight:500}
+.group.over h2{color:var(--danger)} .group.today h2{color:var(--warn)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+li.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px}
+li.item.is-over{border-left:3px solid var(--danger)}
+li.item.is-today{border-left:3px solid var(--warn)}
+li.item.done{opacity:.6} li.item.done .t{text-decoration:line-through}
+li.item.hl{outline:2px solid var(--accent)}
+.check{appearance:none;width:19px;height:19px;border:2px solid var(--muted);border-radius:6px;margin:2px 0 0;cursor:pointer;display:grid;place-items:center;background:transparent}
+.check:checked{background:var(--ok);border-color:var(--ok)}
+.check:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.t{font-weight:600;overflow-wrap:anywhere}
+.notes{color:var(--muted);font-size:.88rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
+.tag{font-family:var(--mono);font-size:.72rem;padding:2px 7px;border-radius:6px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.tag.who{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.tag.over{background:var(--danger-soft);border-color:transparent;color:var(--danger)}
+.tag.today{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+button.tag{cursor:pointer;font-weight:500}
+button.tag:hover{color:var(--fg)}
+.actions{display:flex;gap:4px;margin-top:6px}
+.actions button{padding:3px 8px;font-size:.8rem;font-weight:500}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:20px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:.88rem;z-index:2000}
+.login{max-width:380px;margin:12vh auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:12px}
+.leaflet-popup-content{font-family:var(--body)}
+.leaflet-popup-content b{display:block;margin-bottom:2px}
+.pin-count{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+[hidden]{display:none!important}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr;grid-template-rows:42vh auto;height:auto}
+  #map{grid-row:1;height:42vh}
+  .side{grid-row:2;border-right:0;overflow:visible}
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginBox" hidden>
+  <h1>Pendentes DEM</h1>
+  <p style="margin:0;color:var(--muted)">Enter your work email. We'll send you a sign-in link.</p>
+  <form id="loginForm" style="display:flex;flex-direction:column;gap:10px">
+    <input id="loginEmail" type="email" required placeholder="name@example.com" autocomplete="email">
+    <button class="primary" type="submit">Send sign-in link</button>
+  </form>
+  <p id="loginMsg" style="margin:0;font-size:.9rem;color:var(--muted)"></p>
+</div>
+
+<div class="app" id="app" hidden>
+  <div class="side">
+    <header>
+      <div>
+        <h1>Pendentes DEM</h1>
+        <div class="who-am-i" id="whoAmI"></div>
+      </div>
+      <div class="counts" id="counts"></div>
+    </header>
+    <div class="banner" id="demoBanner" hidden>Demo mode: items are saved only in this browser. Fill in <code>config.js</code> to share the list with the team.</div>
+
+    <form class="card" id="addForm" autocomplete="off">
+      <label class="full">What needs doing
+        <input id="fTitle" required maxlength="200" placeholder="e.g. Check the broken gate at the warehouse">
+      </label>
+      <label>Who
+        <input id="fWho" list="people" maxlength="40" placeholder="Anyone">
+      </label>
+      <label>Due date (optional)
+        <input id="fDue" type="date">
+      </label>
+      <label class="full">Place (optional)
+        <span class="place">
+          <input id="fPlace" maxlength="200" placeholder="Search an address or place">
+          <button type="button" class="ghost" id="searchBtn">Search</button>
+          <button type="button" class="ghost" id="pickBtn" title="Click a spot on the map">Pick on map</button>
+        </span>
+        <span class="results" id="results"></span>
+        <span class="placeinfo" id="placeInfo"></span>
+      </label>
+      <label class="full">Notes (optional)
+        <textarea id="fNotes" rows="1" maxlength="2000" placeholder="Links, context, next step…"></textarea>
+      </label>
+      <div class="full" style="display:flex;gap:6px;justify-content:flex-end">
+        <button type="button" class="ghost" id="cancelEdit" hidden>Cancel</button>
+        <button class="primary" type="submit" id="saveBtn">Add</button>
+      </div>
+    </form>
+    <datalist id="people"></datalist>
+
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Show">
+        <button type="button" data-view="open" aria-pressed="true">Pending</button>
+        <button type="button" data-view="over" aria-pressed="false">Overdue</button>
+        <button type="button" data-view="done" aria-pressed="false">Done</button>
+        <button type="button" data-view="all" aria-pressed="false">All</button>
+      </div>
+      <select id="whoFilter" aria-label="Filter by person"></select>
+      <input type="search" id="q" placeholder="Search" aria-label="Search">
+    </div>
+    <div class="pin-count" id="pinCount"></div>
+    <div id="list"></div>
+  </div>
+  <div style="position:relative;min-height:300px">
+    <div id="map"></div>
+    <div class="pickhint" id="pickHint" hidden>Click the map to place the pin · Esc to cancel</div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+const CFG = window.PENDENTES_CONFIG || {};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(m){ const t=$("#toast"); t.textContent=m; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2400); }
+
+/* ---------- storage: Supabase when configured, otherwise this browser only ---------- */
+const DEMO = !(CFG.supabaseUrl && CFG.supabaseAnonKey);
+let sb = null, items = [], onChange = () => {};
+const store = DEMO ? {
+  key:"pendentes-demo",
+  read(){ try{ return JSON.parse(localStorage.getItem(this.key)||"[]"); }catch(e){ return []; } },
+  write(a){ try{ localStorage.setItem(this.key, JSON.stringify(a)); }catch(e){} },
+  async load(){ items = this.read(); onChange(); },
+  async add(d){ const a=this.read(); a.push({...d, id:crypto.randomUUID(), created_at:new Date().toISOString()}); this.write(a); items=a; onChange(); },
+  async update(id,d){ const a=this.read().map(x=>x.id===id?{...x,...d}:x); this.write(a); items=a; onChange(); },
+  async remove(id){ const a=this.read().filter(x=>x.id!==id); this.write(a); items=a; onChange(); },
+  subscribe(){}
+} : {
+  async load(){ const { data, error } = await sb.from("reminders").select("*"); if (error) throw error; items = data; onChange(); },
+  async add(d){ const { error } = await sb.from("reminders").insert(d); if (error) throw error; await this.load(); },
+  async update(id,d){ const { error } = await sb.from("reminders").update(d).eq("id",id); if (error) throw error; await this.load(); },
+  async remove(id){ const { error } = await sb.from("reminders").delete().eq("id",id); if (error) throw error; await this.load(); },
+  subscribe(){ sb.channel("reminders").on("postgres_changes",{event:"*",schema:"public",table:"reminders"},()=>this.load()).subscribe(); }
+};
+async function save(fn, ok){
+  try { await fn(); if (ok) toast(ok); return true; }
+  catch(e){ console.error(e); toast("Couldn't save: " + (e.message || "check your connection")); return false; }
+}
+
+/* ---------- dates ---------- */
+const todayStr = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const dueState = i => (i.done || !i.due) ? "" : i.due < todayStr() ? "over" : i.due === todayStr() ? "today" : "later";
+function fmtDue(s){
+  const d=new Date(s+"T00:00:00"), t=new Date(todayStr()+"T00:00:00"), diff=Math.round((d-t)/864e5);
+  const base=d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
+  if(diff===0) return "Today"; if(diff===1) return "Tomorrow";
+  if(diff<0) return base+" · "+(-diff)+(diff===-1?" day":" days")+" late";
+  return diff<7 ? base+" · in "+diff+" days" : base;
+}
+
+/* ---------- map ---------- */
+const map = L.map("map",{zoomControl:true}).setView(CFG.mapCenter || [39.5,-8.0], CFG.mapZoom || 7);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+const pinLayer = L.layerGroup().addTo(map);
+let draftPin = null, fitted = false;
+const pinColor = i => { const s=dueState(i); return i.done ? "#8a94a3" : s==="over" ? "#c23b2e" : s==="today" ? "#d08a00" : "#2f5bd3"; };
+
+/* ---------- UI state ---------- */
+let view="open", who="", q="", editingId=null, confirmDel=null, draft={place:"",lat:null,lng:null}, picking=false;
+try { view = localStorage.getItem("pendentes-view") || "open"; } catch(e){}
+
+function setDraftPlace(place, lat, lng){
+  draft = {place, lat, lng};
+  $("#results").innerHTML = "";
+  if (draftPin){ map.removeLayer(draftPin); draftPin=null; }
+  if (lat!=null){
+    draftPin = L.circleMarker([lat,lng],{radius:10,color:"#2f5bd3",weight:3,fillOpacity:.15,dashArray:"4 3"}).addTo(map);
+    $("#placeInfo").innerHTML = `Pin set${place?": "+esc(place):""} <button type="button" class="ghost" id="clearPlace">Remove pin</button>`;
+  } else $("#placeInfo").innerHTML = "";
+}
+$("#placeInfo").addEventListener("click", e => { if (e.target.id==="clearPlace") { setDraftPlace("",null,null); $("#fPlace").value=""; } });
+
+async function searchPlace(){
+  const qv = $("#fPlace").value.trim(); if (!qv) { toast("Type an address or place first."); return; }
+  $("#results").innerHTML = `<span class="placeinfo">Searching…</span>`;
+  try{
+    const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&q="+encodeURIComponent(qv)+(CFG.searchCountry?"&countrycodes="+CFG.searchCountry:""), {headers:{"Accept-Language":navigator.language||"en"}});
+    const res = await r.json();
+    if (!res.length){ $("#results").innerHTML = `<span class="placeinfo">No match. Try a fuller address, or use Pick on map.</span>`; return; }
+    $("#results").innerHTML = res.map((x,k)=>`<button type="button" data-k="${k}">${esc(x.display_name)}</button>`).join("");
+    $("#results").onclick = e => { const b=e.target.closest("button[data-k]"); if(!b) return; const x=res[+b.dataset.k];
+      const short = x.display_name.split(",").slice(0,3).join(",").trim();
+      $("#fPlace").value = short; setDraftPlace(short, +x.lat, +x.lon); map.setView([+x.lat,+x.lon], 16); };
+  }catch(e){ $("#results").innerHTML = `<span class="placeinfo">Address search isn't reachable right now. Use Pick on map instead.</span>`; }
+}
+$("#searchBtn").onclick = searchPlace;
+$("#fPlace").addEventListener("keydown", e => { if (e.key==="Enter"){ e.preventDefault(); searchPlace(); } });
+function setPicking(on){ picking=on; document.body.classList.toggle("picking",on); $("#pickHint").hidden=!on; }
+$("#pickBtn").onclick = () => setPicking(!picking);
+document.addEventListener("keydown", e => { if (e.key==="Escape" && picking) setPicking(false); });
+map.on("click", e => {
+  if (!picking) return;
+  setPicking(false);
+  setDraftPlace($("#fPlace").value.trim(), +e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6));
+});
+
+function resetForm(){
+  editingId=null; $("#addForm").reset(); setDraftPlace("",null,null);
+  $("#saveBtn").textContent="Add"; $("#cancelEdit").hidden=true;
+}
+$("#cancelEdit").onclick = () => { resetForm(); render(); };
+$("#addForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const d = { title:$("#fTitle").value.trim(), who:$("#fWho").value.trim(), due:$("#fDue").value||null, notes:$("#fNotes").value.trim(),
+              place:$("#fPlace").value.trim() || draft.place || "", lat:draft.lat, lng:draft.lng };
+  if (!d.title) return;
+  $("#saveBtn").disabled = true;
+  const ok = editingId ? await save(()=>store.update(editingId,d),"Saved") : await save(()=>store.add({...d, done:false}),"Added");
+  $("#saveBtn").disabled = false;
+  if (ok){ resetForm(); $("#fTitle").focus(); }
+});
+function startEdit(i){
+  editingId=i.id; confirmDel=null;
+  $("#fTitle").value=i.title||""; $("#fWho").value=i.who||""; $("#fDue").value=i.due||""; $("#fNotes").value=i.notes||""; $("#fPlace").value=i.place||"";
+  setDraftPlace(i.place||"", i.lat, i.lng);
+  $("#saveBtn").textContent="Save changes"; $("#cancelEdit").hidden=false;
+  $("#addForm").scrollIntoView({behavior:"smooth",block:"start"}); $("#fTitle").focus();
+  render();
+}
+
+document.querySelector(".seg").onclick = e => { const b=e.target.closest("button"); if(!b) return; view=b.dataset.view; try{localStorage.setItem("pendentes-view",view);}catch(_){} render(); };
+$("#whoFilter").onchange = e => { who=e.target.value; render(); };
+$("#q").oninput = e => { q=e.target.value.trim().toLowerCase(); render(); };
+
+function visible(){
+  return items.filter(i=>{
+    if (view==="open" && i.done) return false;
+    if (view==="done" && !i.done) return false;
+    if (view==="over" && dueState(i)!=="over") return false;
+    if (who==="__none" && (i.who||"").trim()) return false;
+    if (who && who!=="__none" && (i.who||"").trim()!==who) return false;
+    if (q && !`${i.title} ${i.notes||""} ${i.who||""} ${i.place||""}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function render(){
+  const open=items.filter(i=>!i.done), over=open.filter(i=>dueState(i)==="over"), tod=open.filter(i=>dueState(i)==="today");
+  $("#counts").innerHTML = `<span class="chip">${open.length} pending</span>`+(over.length?`<span class="chip over">${over.length} overdue</span>`:"")+(tod.length?`<span class="chip today">${tod.length} due today</span>`:"");
+  const people=[...new Set(items.map(i=>(i.who||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  $("#people").innerHTML = people.map(p=>`<option value="${esc(p)}">`).join("");
+  $("#whoFilter").innerHTML = `<option value="">Everyone</option>`+people.map(p=>`<option ${p===who?"selected":""}>${esc(p)}</option>`).join("")+`<option value="__none" ${who==="__none"?"selected":""}>Unassigned</option>`;
+  document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.view===view));
+
+  const list = visible();
+  const groups=[["over","Overdue",i=>dueState(i)==="over"],["today","Due today",i=>dueState(i)==="today"],["later","Upcoming",i=>dueState(i)==="later"],["nodate","No due date",i=>!i.done&&!i.due],["done","Done",i=>i.done]];
+  let html="";
+  for (const [k,label,fn] of groups){
+    let g=list.filter(fn); if(!g.length) continue;
+    g.sort((a,b)=> k==="done" ? String(b.done_at||"").localeCompare(String(a.done_at||"")) : String(a.due||"9999").localeCompare(String(b.due||"9999")) || String(a.created_at).localeCompare(String(b.created_at)));
+    html+=`<section class="group ${k}"><h2>${label} <span class="n">${g.length}</span></h2><ul>${g.map(itemHtml).join("")}</ul></section>`;
+  }
+  $("#list").innerHTML = html ? `<div style="display:flex;flex-direction:column;gap:14px">${html}</div>`
+    : `<div class="empty">${items.length ? "Nothing here with these filters." : "No reminders yet. Add the first one above, and give it a place to see its pin on the map."}</div>`;
+
+  // pins
+  pinLayer.clearLayers();
+  const pinned = list.filter(i=>i.lat!=null && i.lng!=null);
+  $("#pinCount").textContent = list.length ? `${pinned.length} of ${list.length} shown on the map` : "";
+  pinned.forEach(i=>{
+    const m = L.circleMarker([i.lat,i.lng],{radius:9,color:"#fff",weight:2,fillColor:pinColor(i),fillOpacity:1}).addTo(pinLayer);
+    m.bindPopup(`<b>${esc(i.title)}</b>${i.place?esc(i.place)+"<br>":""}${i.who?"Who: "+esc(i.who)+"<br>":""}${i.due?"Due: "+esc(fmtDue(i.due))+"<br>":""}<a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}" target="_blank" rel="noopener">Directions</a>`);
+    m.on("click",()=>{ document.querySelectorAll("li.hl").forEach(x=>x.classList.remove("hl")); const li=document.getElementById("it-"+i.id); if(li){ li.classList.add("hl"); li.scrollIntoView({behavior:"smooth",block:"center"}); } });
+  });
+  if (!fitted && pinned.length){ fitted=true; map.fitBounds(L.latLngBounds(pinned.map(i=>[i.lat,i.lng])).pad(.3),{maxZoom:15}); }
+}
+
+function itemHtml(i){
+  const ds=dueState(i);
+  const del = confirmDel===i.id ? `<button class="danger" data-act="del" data-id="${i.id}">Confirm delete</button><button class="ghost" data-act="nodel">Keep</button>`
+                                : `<button class="ghost" data-act="edit" data-id="${i.id}">Edit</button><button class="ghost" data-act="askdel" data-id="${i.id}">Delete</button>`;
+  const placeTag = (i.lat!=null) ? `<button class="tag" data-act="fly" data-id="${i.id}" title="Show on map">📍 ${esc(i.place||"On map")}</button>` : (i.place?`<span class="tag">${esc(i.place)}</span>`:"");
+  return `<li class="item ${i.done?"done":""} ${ds==="over"?"is-over":ds==="today"?"is-today":""} ${editingId===i.id?"hl":""}" id="it-${i.id}">
+    <input type="checkbox" class="check" data-act="toggle" data-id="${i.id}" ${i.done?"checked":""} aria-label="Mark done">
+    <div style="min-width:0"><div class="t">${esc(i.title)}</div>
+      ${i.notes?`<div class="notes">${esc(i.notes)}</div>`:""}
+      <div class="meta">${i.who?`<span class="tag who">${esc(i.who)}</span>`:""}${i.due?`<span class="tag ${ds==="over"?"over":ds==="today"?"today":""}">${esc(fmtDue(i.due))}</span>`:""}${placeTag}</div>
+      <div class="actions">${del}</div>
+    </div></li>`;
+}
+
+$("#list").addEventListener("click", async e=>{
+  const el=e.target.closest("[data-act]"); if(!el) return;
+  const id=el.dataset.id, act=el.dataset.act, it=items.find(x=>String(x.id)===id);
+  if (act==="toggle") await save(()=>store.update(it.id,{done:el.checked, done_at:el.checked?new Date().toISOString():null}), el.checked?"Marked done":"Reopened");
+  else if (act==="edit") startEdit(it);
+  else if (act==="askdel"){ confirmDel=id; render(); }
+  else if (act==="nodel"){ confirmDel=null; render(); }
+  else if (act==="del"){ confirmDel=null; if (editingId===it.id) resetForm(); await save(()=>store.remove(it.id),"Deleted"); }
+  else if (act==="fly"){ map.setView([it.lat,it.lng],17); pinLayer.eachLayer(m=>{ const p=m.getLatLng(); if(p.lat===it.lat&&p.lng===it.lng) m.openPopup(); }); }
+});
+setInterval(render, 5*60*1000);
+
+/* ---------- start ---------- */
+onChange = render;
+async function showApp(email){
+  $("#loginBox").hidden=true; $("#app").hidden=false; map.invalidateSize();
+  $("#whoAmI").innerHTML = email ? `Signed in as ${esc(email)} <button class="ghost" id="logout" style="padding:2px 8px;font-size:.78rem">Sign out</button>` : "";
+  const lo=$("#logout"); if (lo) lo.onclick = async()=>{ await sb.auth.signOut(); location.reload(); };
+  try { await store.load(); store.subscribe(); }
+  catch(e){ $("#list").innerHTML = `<div class="empty">Couldn't load the list. If you just signed in, ask whoever set this up to add your email to the team list.</div>`; }
+}
+(async()=>{
+  if (DEMO){ $("#demoBanner").hidden=false; showApp(null); return; }
+  sb = supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+  const { data:{ session } } = await sb.auth.getSession();
+  if (session) return showApp(session.user.email);
+  $("#loginBox").hidden=false;
+  sb.auth.onAuthStateChange((_ev, s)=>{ if (s && $("#app").hidden) showApp(s.user.email); });
+  $("#loginForm").onsubmit = async e=>{
+    e.preventDefault();
+    const { error } = await sb.auth.signInWithOtp({ email:$("#loginEmail").value.trim(), options:{ emailRedirectTo: location.href.split("#")[0] } });
+    $("#loginMsg").textContent = error ? "Couldn't send the link: "+error.message : "Check your inbox and click the link to sign in.";
+  };
+})();
+</script>
+</body>
+</html>
