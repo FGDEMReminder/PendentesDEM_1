@@ -1,8 +1,8 @@
 # Pendentes DEM
 
-Shared reminders and pending actions for the team, with pins on a map.
+Lembretes e ações pendentes partilhados pela equipa, com pins no mapa.
 
-- `index.html`: the website.
-- `config.js`: Supabase address and public key, and where the map opens.
+- `index.html`: o site.
+- `config.js`: endereço e chave pública do Supabase, e onde o mapa abre.
 
-The database setup (tables and access rules) lives in Supabase. Only team emails listed there can sign in.
+A base de dados (tabelas e regras de acesso) está no Supabase. Só os emails da equipa registados lá podem entrar.

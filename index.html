@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-PT">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -102,11 +102,11 @@ button.tag:hover{color:var(--fg)}
 
 <div class="login" id="loginBox" hidden>
   <h1>Pendentes DEM</h1>
-  <p style="margin:0;color:var(--muted)">Sign in with your work email. The first time, choose <b>Create account</b> and pick a password.</p>
+  <p style="margin:0;color:var(--muted)">Entre com o seu email de trabalho. Na primeira vez, escolha <b>Criar conta</b> e defina uma palavra-passe.</p>
   <form id="loginForm" style="display:flex;flex-direction:column;gap:10px">
-    <input id="loginEmail" type="email" required placeholder="name@example.com" autocomplete="email">
-    <input id="loginPass" type="password" required minlength="8" placeholder="Password (at least 8 characters)" autocomplete="current-password">
-    <div style="display:flex;gap:8px"><button class="primary" type="submit" style="flex:1">Sign in</button><button class="ghost" type="button" id="signupBtn">Create account</button></div>
+    <input id="loginEmail" type="email" required placeholder="nome@exemplo.pt" autocomplete="email">
+    <input id="loginPass" type="password" required minlength="8" placeholder="Palavra-passe (mínimo 8 caracteres)" autocomplete="current-password">
+    <div style="display:flex;gap:8px"><button class="primary" type="submit" style="flex:1">Entrar</button><button class="ghost" type="button" id="signupBtn">Criar conta</button></div>
   </form>
   <p id="loginMsg" style="margin:0;font-size:.9rem;color:var(--muted)"></p>
 </div>
@@ -120,53 +120,53 @@ button.tag:hover{color:var(--fg)}
       </div>
       <div class="counts" id="counts"></div>
     </header>
-    <div class="banner" id="demoBanner" hidden>Demo mode: items are saved only in this browser. Fill in <code>config.js</code> to share the list with the team.</div>
+    <div class="banner" id="demoBanner" hidden>Modo de demonstração: os itens ficam guardados só neste navegador. Preencha o <code>config.js</code> para partilhar a lista com a equipa.</div>
 
     <form class="card" id="addForm" autocomplete="off">
-      <label class="full">What needs doing
-        <input id="fTitle" required maxlength="200" placeholder="e.g. Check the broken gate at the warehouse">
+      <label class="full">O que é preciso fazer
+        <input id="fTitle" required maxlength="200" placeholder="ex.: Verificar o portão avariado no armazém">
       </label>
-      <label>Who
-        <input id="fWho" list="people" maxlength="40" placeholder="Anyone">
+      <label>Quem
+        <input id="fWho" list="people" maxlength="40" placeholder="Qualquer pessoa">
       </label>
-      <label>Due date (optional)
+      <label>Prazo (opcional)
         <input id="fDue" type="date">
       </label>
-      <label class="full">Place (optional)
+      <label class="full">Local (opcional)
         <span class="place">
-          <input id="fPlace" maxlength="200" placeholder="Search an address or place">
-          <button type="button" class="ghost" id="searchBtn">Search</button>
-          <button type="button" class="ghost" id="pickBtn" title="Click a spot on the map">Pick on map</button>
+          <input id="fPlace" maxlength="200" placeholder="Pesquisar morada ou local">
+          <button type="button" class="ghost" id="searchBtn">Pesquisar</button>
+          <button type="button" class="ghost" id="pickBtn" title="Clique num ponto do mapa">Escolher no mapa</button>
         </span>
         <span class="results" id="results"></span>
         <span class="placeinfo" id="placeInfo"></span>
       </label>
-      <label class="full">Notes (optional)
-        <textarea id="fNotes" rows="1" maxlength="2000" placeholder="Links, context, next step…"></textarea>
+      <label class="full">Notas (opcional)
+        <textarea id="fNotes" rows="1" maxlength="2000" placeholder="Links, contexto, próximo passo…"></textarea>
       </label>
       <div class="full" style="display:flex;gap:6px;justify-content:flex-end">
-        <button type="button" class="ghost" id="cancelEdit" hidden>Cancel</button>
-        <button class="primary" type="submit" id="saveBtn">Add</button>
+        <button type="button" class="ghost" id="cancelEdit" hidden>Cancelar</button>
+        <button class="primary" type="submit" id="saveBtn">Adicionar</button>
       </div>
     </form>
     <datalist id="people"></datalist>
 
     <div class="toolbar">
-      <div class="seg" role="group" aria-label="Show">
-        <button type="button" data-view="open" aria-pressed="true">Pending</button>
-        <button type="button" data-view="over" aria-pressed="false">Overdue</button>
-        <button type="button" data-view="done" aria-pressed="false">Done</button>
-        <button type="button" data-view="all" aria-pressed="false">All</button>
+      <div class="seg" role="group" aria-label="Mostrar">
+        <button type="button" data-view="open" aria-pressed="true">Pendentes</button>
+        <button type="button" data-view="over" aria-pressed="false">Atrasados</button>
+        <button type="button" data-view="done" aria-pressed="false">Feitos</button>
+        <button type="button" data-view="all" aria-pressed="false">Todos</button>
       </div>
-      <select id="whoFilter" aria-label="Filter by person"></select>
-      <input type="search" id="q" placeholder="Search" aria-label="Search">
+      <select id="whoFilter" aria-label="Filtrar por pessoa"></select>
+      <input type="search" id="q" placeholder="Pesquisar" aria-label="Pesquisar">
     </div>
     <div class="pin-count" id="pinCount"></div>
     <div id="list"></div>
   </div>
   <div style="position:relative;min-height:300px">
     <div id="map"></div>
-    <div class="pickhint" id="pickHint" hidden>Click the map to place the pin · Esc to cancel</div>
+    <div class="pickhint" id="pickHint" hidden>Clique no mapa para colocar o pin · Esc para cancelar</div>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -201,7 +201,7 @@ const store = DEMO ? {
 };
 async function save(fn, ok){
   try { await fn(); if (ok) toast(ok); return true; }
-  catch(e){ console.error(e); toast("Couldn't save: " + (e.message || "check your connection")); return false; }
+  catch(e){ console.error(e); toast("Não foi possível guardar: " + (e.message || "verifique a ligação")); return false; }
 }
 
 /* ---------- dates ---------- */
@@ -209,10 +209,10 @@ const todayStr = () => { const d=new Date(); return d.getFullYear()+"-"+String(d
 const dueState = i => (i.done || !i.due) ? "" : i.due < todayStr() ? "over" : i.due === todayStr() ? "today" : "later";
 function fmtDue(s){
   const d=new Date(s+"T00:00:00"), t=new Date(todayStr()+"T00:00:00"), diff=Math.round((d-t)/864e5);
-  const base=d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
-  if(diff===0) return "Today"; if(diff===1) return "Tomorrow";
-  if(diff<0) return base+" · "+(-diff)+(diff===-1?" day":" days")+" late";
-  return diff<7 ? base+" · in "+diff+" days" : base;
+  const base=d.toLocaleDateString("pt-PT",{weekday:"short",day:"numeric",month:"short"});
+  if(diff===0) return "Hoje"; if(diff===1) return "Amanhã";
+  if(diff<0) return base+" · "+(-diff)+(diff===-1?" dia":" dias")+" de atraso";
+  return diff<7 ? base+" · daqui a "+diff+" dias" : base;
 }
 
 /* ---------- map ---------- */
@@ -232,23 +232,23 @@ function setDraftPlace(place, lat, lng){
   if (draftPin){ map.removeLayer(draftPin); draftPin=null; }
   if (lat!=null){
     draftPin = L.circleMarker([lat,lng],{radius:10,color:"#2f5bd3",weight:3,fillOpacity:.15,dashArray:"4 3"}).addTo(map);
-    $("#placeInfo").innerHTML = `Pin set${place?": "+esc(place):""} <button type="button" class="ghost" id="clearPlace">Remove pin</button>`;
+    $("#placeInfo").innerHTML = `Pin definido${place?": "+esc(place):""} <button type="button" class="ghost" id="clearPlace">Remover pin</button>`;
   } else $("#placeInfo").innerHTML = "";
 }
 $("#placeInfo").addEventListener("click", e => { if (e.target.id==="clearPlace") { setDraftPlace("",null,null); $("#fPlace").value=""; } });
 
 async function searchPlace(){
-  const qv = $("#fPlace").value.trim(); if (!qv) { toast("Type an address or place first."); return; }
-  $("#results").innerHTML = `<span class="placeinfo">Searching…</span>`;
+  const qv = $("#fPlace").value.trim(); if (!qv) { toast("Escreva primeiro uma morada ou local."); return; }
+  $("#results").innerHTML = `<span class="placeinfo">A pesquisar…</span>`;
   try{
-    const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&q="+encodeURIComponent(qv)+(CFG.searchCountry?"&countrycodes="+CFG.searchCountry:""), {headers:{"Accept-Language":navigator.language||"en"}});
+    const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&q="+encodeURIComponent(qv)+(CFG.searchCountry?"&countrycodes="+CFG.searchCountry:""), {headers:{"Accept-Language":"pt-PT"}});
     const res = await r.json();
-    if (!res.length){ $("#results").innerHTML = `<span class="placeinfo">No match. Try a fuller address, or use Pick on map.</span>`; return; }
+    if (!res.length){ $("#results").innerHTML = `<span class="placeinfo">Sem resultados. Tente uma morada mais completa ou use Escolher no mapa.</span>`; return; }
     $("#results").innerHTML = res.map((x,k)=>`<button type="button" data-k="${k}">${esc(x.display_name)}</button>`).join("");
     $("#results").onclick = e => { const b=e.target.closest("button[data-k]"); if(!b) return; const x=res[+b.dataset.k];
       const short = x.display_name.split(",").slice(0,3).join(",").trim();
       $("#fPlace").value = short; setDraftPlace(short, +x.lat, +x.lon); map.setView([+x.lat,+x.lon], 16); };
-  }catch(e){ $("#results").innerHTML = `<span class="placeinfo">Address search isn't reachable right now. Use Pick on map instead.</span>`; }
+  }catch(e){ $("#results").innerHTML = `<span class="placeinfo">A pesquisa de moradas não está disponível agora. Use Escolher no mapa.</span>`; }
 }
 $("#searchBtn").onclick = searchPlace;
 $("#fPlace").addEventListener("keydown", e => { if (e.key==="Enter"){ e.preventDefault(); searchPlace(); } });
@@ -263,7 +263,7 @@ map.on("click", e => {
 
 function resetForm(){
   editingId=null; $("#addForm").reset(); setDraftPlace("",null,null);
-  $("#saveBtn").textContent="Add"; $("#cancelEdit").hidden=true;
+  $("#saveBtn").textContent="Adicionar"; $("#cancelEdit").hidden=true;
 }
 $("#cancelEdit").onclick = () => { resetForm(); render(); };
 $("#addForm").addEventListener("submit", async ev => {
@@ -272,7 +272,7 @@ $("#addForm").addEventListener("submit", async ev => {
               place:$("#fPlace").value.trim() || draft.place || "", lat:draft.lat, lng:draft.lng };
   if (!d.title) return;
   $("#saveBtn").disabled = true;
-  const ok = editingId ? await save(()=>store.update(editingId,d),"Saved") : await save(()=>store.add({...d, done:false}),"Added");
+  const ok = editingId ? await save(()=>store.update(editingId,d),"Guardado") : await save(()=>store.add({...d, done:false}),"Adicionado");
   $("#saveBtn").disabled = false;
   if (ok){ resetForm(); $("#fTitle").focus(); }
 });
@@ -280,7 +280,7 @@ function startEdit(i){
   editingId=i.id; confirmDel=null;
   $("#fTitle").value=i.title||""; $("#fWho").value=i.who||""; $("#fDue").value=i.due||""; $("#fNotes").value=i.notes||""; $("#fPlace").value=i.place||"";
   setDraftPlace(i.place||"", i.lat, i.lng);
-  $("#saveBtn").textContent="Save changes"; $("#cancelEdit").hidden=false;
+  $("#saveBtn").textContent="Guardar alterações"; $("#cancelEdit").hidden=false;
   $("#addForm").scrollIntoView({behavior:"smooth",block:"start"}); $("#fTitle").focus();
   render();
 }
@@ -303,14 +303,14 @@ function visible(){
 
 function render(){
   const open=items.filter(i=>!i.done), over=open.filter(i=>dueState(i)==="over"), tod=open.filter(i=>dueState(i)==="today");
-  $("#counts").innerHTML = `<span class="chip">${open.length} pending</span>`+(over.length?`<span class="chip over">${over.length} overdue</span>`:"")+(tod.length?`<span class="chip today">${tod.length} due today</span>`:"");
+  $("#counts").innerHTML = `<span class="chip">${open.length} ${open.length===1?"pendente":"pendentes"}</span>`+(over.length?`<span class="chip over">${over.length} ${over.length===1?"atrasado":"atrasados"}</span>`:"")+(tod.length?`<span class="chip today">${tod.length} para hoje</span>`:"");
   const people=[...new Set(items.map(i=>(i.who||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   $("#people").innerHTML = people.map(p=>`<option value="${esc(p)}">`).join("");
-  $("#whoFilter").innerHTML = `<option value="">Everyone</option>`+people.map(p=>`<option ${p===who?"selected":""}>${esc(p)}</option>`).join("")+`<option value="__none" ${who==="__none"?"selected":""}>Unassigned</option>`;
+  $("#whoFilter").innerHTML = `<option value="">Todos</option>`+people.map(p=>`<option ${p===who?"selected":""}>${esc(p)}</option>`).join("")+`<option value="__none" ${who==="__none"?"selected":""}>Sem responsável</option>`;
   document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.view===view));
 
   const list = visible();
-  const groups=[["over","Overdue",i=>dueState(i)==="over"],["today","Due today",i=>dueState(i)==="today"],["later","Upcoming",i=>dueState(i)==="later"],["nodate","No due date",i=>!i.done&&!i.due],["done","Done",i=>i.done]];
+  const groups=[["over","Atrasados",i=>dueState(i)==="over"],["today","Para hoje",i=>dueState(i)==="today"],["later","Próximos",i=>dueState(i)==="later"],["nodate","Sem prazo",i=>!i.done&&!i.due],["done","Feitos",i=>i.done]];
   let html="";
   for (const [k,label,fn] of groups){
     let g=list.filter(fn); if(!g.length) continue;
@@ -318,15 +318,15 @@ function render(){
     html+=`<section class="group ${k}"><h2>${label} <span class="n">${g.length}</span></h2><ul>${g.map(itemHtml).join("")}</ul></section>`;
   }
   $("#list").innerHTML = html ? `<div style="display:flex;flex-direction:column;gap:14px">${html}</div>`
-    : `<div class="empty">${items.length ? "Nothing here with these filters." : "No reminders yet. Add the first one above, and give it a place to see its pin on the map."}</div>`;
+    : `<div class="empty">${items.length ? "Nada aqui com estes filtros." : "Ainda não há lembretes. Adicione o primeiro acima e indique um local para ver o pin no mapa."}</div>`;
 
   // pins
   pinLayer.clearLayers();
   const pinned = list.filter(i=>i.lat!=null && i.lng!=null);
-  $("#pinCount").textContent = list.length ? `${pinned.length} of ${list.length} shown on the map` : "";
+  $("#pinCount").textContent = list.length ? `${pinned.length} de ${list.length} no mapa` : "";
   pinned.forEach(i=>{
     const m = L.circleMarker([i.lat,i.lng],{radius:9,color:"#fff",weight:2,fillColor:pinColor(i),fillOpacity:1}).addTo(pinLayer);
-    m.bindPopup(`<b>${esc(i.title)}</b>${i.place?esc(i.place)+"<br>":""}${i.who?"Who: "+esc(i.who)+"<br>":""}${i.due?"Due: "+esc(fmtDue(i.due))+"<br>":""}<a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}" target="_blank" rel="noopener">Directions</a>`);
+    m.bindPopup(`<b>${esc(i.title)}</b>${i.place?esc(i.place)+"<br>":""}${i.who?"Quem: "+esc(i.who)+"<br>":""}${i.due?"Prazo: "+esc(fmtDue(i.due))+"<br>":""}<a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}" target="_blank" rel="noopener">Direções</a>`);
     m.on("click",()=>{ document.querySelectorAll("li.hl").forEach(x=>x.classList.remove("hl")); const li=document.getElementById("it-"+i.id); if(li){ li.classList.add("hl"); li.scrollIntoView({behavior:"smooth",block:"center"}); } });
   });
   if (!fitted && pinned.length){ fitted=true; map.fitBounds(L.latLngBounds(pinned.map(i=>[i.lat,i.lng])).pad(.3),{maxZoom:15}); }
@@ -334,11 +334,11 @@ function render(){
 
 function itemHtml(i){
   const ds=dueState(i);
-  const del = confirmDel===i.id ? `<button class="danger" data-act="del" data-id="${i.id}">Confirm delete</button><button class="ghost" data-act="nodel">Keep</button>`
-                                : `<button class="ghost" data-act="edit" data-id="${i.id}">Edit</button><button class="ghost" data-act="askdel" data-id="${i.id}">Delete</button>`;
-  const placeTag = (i.lat!=null) ? `<button class="tag" data-act="fly" data-id="${i.id}" title="Show on map">📍 ${esc(i.place||"On map")}</button>` : (i.place?`<span class="tag">${esc(i.place)}</span>`:"");
+  const del = confirmDel===i.id ? `<button class="danger" data-act="del" data-id="${i.id}">Confirmar eliminação</button><button class="ghost" data-act="nodel">Manter</button>`
+                                : `<button class="ghost" data-act="edit" data-id="${i.id}">Editar</button><button class="ghost" data-act="askdel" data-id="${i.id}">Eliminar</button>`;
+  const placeTag = (i.lat!=null) ? `<button class="tag" data-act="fly" data-id="${i.id}" title="Ver no mapa">📍 ${esc(i.place||"No mapa")}</button>` : (i.place?`<span class="tag">${esc(i.place)}</span>`:"");
   return `<li class="item ${i.done?"done":""} ${ds==="over"?"is-over":ds==="today"?"is-today":""} ${editingId===i.id?"hl":""}" id="it-${i.id}">
-    <input type="checkbox" class="check" data-act="toggle" data-id="${i.id}" ${i.done?"checked":""} aria-label="Mark done">
+    <input type="checkbox" class="check" data-act="toggle" data-id="${i.id}" ${i.done?"checked":""} aria-label="Marcar como feito">
     <div style="min-width:0"><div class="t">${esc(i.title)}</div>
       ${i.notes?`<div class="notes">${esc(i.notes)}</div>`:""}
       <div class="meta">${i.who?`<span class="tag who">${esc(i.who)}</span>`:""}${i.due?`<span class="tag ${ds==="over"?"over":ds==="today"?"today":""}">${esc(fmtDue(i.due))}</span>`:""}${placeTag}</div>
@@ -349,11 +349,11 @@ function itemHtml(i){
 $("#list").addEventListener("click", async e=>{
   const el=e.target.closest("[data-act]"); if(!el) return;
   const id=el.dataset.id, act=el.dataset.act, it=items.find(x=>String(x.id)===id);
-  if (act==="toggle") await save(()=>store.update(it.id,{done:el.checked, done_at:el.checked?new Date().toISOString():null}), el.checked?"Marked done":"Reopened");
+  if (act==="toggle") await save(()=>store.update(it.id,{done:el.checked, done_at:el.checked?new Date().toISOString():null}), el.checked?"Marcado como feito":"Reaberto");
   else if (act==="edit") startEdit(it);
   else if (act==="askdel"){ confirmDel=id; render(); }
   else if (act==="nodel"){ confirmDel=null; render(); }
-  else if (act==="del"){ confirmDel=null; if (editingId===it.id) resetForm(); await save(()=>store.remove(it.id),"Deleted"); }
+  else if (act==="del"){ confirmDel=null; if (editingId===it.id) resetForm(); await save(()=>store.remove(it.id),"Eliminado"); }
   else if (act==="fly"){ map.setView([it.lat,it.lng],17); pinLayer.eachLayer(m=>{ const p=m.getLatLng(); if(p.lat===it.lat&&p.lng===it.lng) m.openPopup(); }); }
 });
 setInterval(render, 5*60*1000);
@@ -362,10 +362,10 @@ setInterval(render, 5*60*1000);
 onChange = render;
 async function showApp(email){
   $("#loginBox").hidden=true; $("#app").hidden=false; map.invalidateSize();
-  $("#whoAmI").innerHTML = email ? `Signed in as ${esc(email)} <button class="ghost" id="logout" style="padding:2px 8px;font-size:.78rem">Sign out</button>` : "";
+  $("#whoAmI").innerHTML = email ? `Sessão iniciada como ${esc(email)} <button class="ghost" id="logout" style="padding:2px 8px;font-size:.78rem">Sair</button>` : "";
   const lo=$("#logout"); if (lo) lo.onclick = async()=>{ await sb.auth.signOut(); location.reload(); };
   try { await store.load(); store.subscribe(); }
-  catch(e){ $("#list").innerHTML = `<div class="empty">Couldn't load the list. Your email may not be on the team list yet. Ask whoever set this up to add it.</div>`; }
+  catch(e){ $("#list").innerHTML = `<div class="empty">Não foi possível carregar a lista. O seu email pode ainda não estar na lista da equipa. Peça a quem configurou o site para o adicionar.</div>`; }
 }
 (async()=>{
   if (DEMO){ $("#demoBanner").hidden=false; showApp(null); return; }
@@ -379,13 +379,13 @@ async function showApp(email){
   $("#loginForm").onsubmit = async e=>{
     e.preventDefault();
     const { error } = await sb.auth.signInWithPassword(creds());
-    if (error) msg(error.message.includes("Invalid") ? "Wrong email or password. First time here? Use Create account." : "Couldn't sign in: "+error.message);
+    if (error) msg(error.message.includes("Invalid") ? "Email ou palavra-passe errados. É a primeira vez? Use Criar conta." : "Não foi possível entrar: "+error.message);
   };
   $("#signupBtn").onclick = async ()=>{
     if (!$("#loginForm").reportValidity()) return;
     const { data, error } = await sb.auth.signUp(creds());
-    if (error) return msg("Couldn't create the account: "+error.message);
-    if (!data.session) msg("Account created. Check your email to confirm it, then sign in.");
+    if (error) return msg("Não foi possível criar a conta: "+error.message);
+    if (!data.session) msg("Conta criada. Confirme-a no seu email e depois entre.");
   };
 })();
 </script>
